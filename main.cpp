@@ -3,9 +3,21 @@
 #include <stdio.h>
 #include <string.h>
 
+// --- USTAWIENIA OKNA I ŚWIATA ---
 const int SCREEN_WIDTH = 800;
 const int SCREEN_HEIGHT = 600;
-const int GAME_AREA_SIZE = 600;
+const int VIEWPORT_SIZE = 600;
+
+const int WORLD_WIDTH = 2400;
+const int WORLD_HEIGHT = 600;
+const int FLOOR_TOP = 350;
+
+struct Player
+{
+    float x, y;
+    int w, h;
+    float speed;
+};
 
 class Game
 {
@@ -15,62 +27,53 @@ private:
     TTF_Font *font;
     bool isRunning;
 
+    Player player;
+    SDL_Rect camera;
     Uint32 startTime;
-    char lastAction[64]; // Zamiast std::string używamy tablicy char
+    char lastAction[64];
 
 public:
-    Game() : window(NULL), renderer(NULL), font(NULL), isRunning(true), startTime(0)
+    Game() : window(NULL), renderer(NULL), font(NULL), isRunning(true)
     {
-        // Inicjalizacja napisu na początku
-        strncpy(lastAction, "Brak", 64);
+        player.w = 50;
+        player.h = 90;
+        resetGame();
     }
 
     bool init()
     {
         if (SDL_Init(SDL_INIT_VIDEO) < 0)
             return false;
-
-        // Inicjalizacja SDL_ttf
         if (TTF_Init() == -1)
-        {
-            printf("TTF Init Error: %s\n", TTF_GetError());
             return false;
-        }
 
-        window = SDL_CreateWindow("Projekt SDL2", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+        window = SDL_CreateWindow("Beat 'em Up - Projekt Podstawy Programowania",
+                                  SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                                   SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+        if (!window)
+            return false;
+
         renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+        if (!renderer)
+            return false;
 
-        // Wczytanie czcionki (podaj poprawną nazwę pliku, który masz w folderze!)
-        font = TTF_OpenFont("arial.ttf", 20);
-        if (!font)
-        {
-            printf("Błąd wczytywania czcionki: %s\n", TTF_GetError());
-        }
-
-        startTime = SDL_GetTicks();
+        font = TTF_OpenFont("arial.ttf", 18);
         return true;
     }
 
-    // Pomocnicza funkcja do rysowania tekstu (używa tylko char*)
-    void drawText(const char *text, int x, int y)
+    void resetGame()
     {
-        if (!font || !text || text[0] == '\0')
-            return;
+        player.x = 100;
+        player.y = FLOOR_TOP + 50;
+        player.speed = 4.0f;
 
-        SDL_Color white = {255, 255, 255, 255};
-        SDL_Surface *surface = TTF_RenderText_Solid(font, text, white);
-        if (!surface)
-            return;
+        camera.x = 0;
+        camera.y = 0;
+        camera.w = VIEWPORT_SIZE;
+        camera.h = VIEWPORT_SIZE;
 
-        SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
-        SDL_Rect dest = {x, y, surface->w, surface->h};
-
-        SDL_RenderCopy(renderer, texture, NULL, &dest);
-
-        // Ważne: SDL w C wymaga ręcznego zwalniania pamięci!
-        SDL_FreeSurface(surface);
-        SDL_DestroyTexture(texture);
+        startTime = SDL_GetTicks();
+        strncpy(lastAction, "Nowa Gra Rozpoczeta", 64);
     }
 
     void handleEvents()
@@ -80,52 +83,144 @@ public:
         {
             if (event.type == SDL_QUIT)
                 isRunning = false;
-
             if (event.type == SDL_KEYDOWN)
             {
-                switch (event.key.keysym.sym)
-                {
-                case SDLK_ESCAPE:
+                if (event.key.keysym.sym == SDLK_ESCAPE)
                     isRunning = false;
-                    break;
-                case SDLK_n:
-                    startTime = SDL_GetTicks();
-                    strncpy(lastAction, "Nowa Gra (n)", 64);
-                    break;
-                case SDLK_UP:
-                    strncpy(lastAction, "Strzalka w gore", 64);
-                    break;
-                case SDLK_DOWN:
-                    strncpy(lastAction, "Strzalka w dol", 64);
-                    break;
-                }
+                if (event.key.keysym.sym == SDLK_n)
+                    resetGame();
             }
         }
+
+        const Uint8 *keys = SDL_GetKeyboardState(NULL);
+        bool moved = false;
+
+        if (keys[SDL_SCANCODE_LEFT])
+        {
+            player.x -= player.speed;
+            strncpy(lastAction, "Idzie w lewo", 64);
+            moved = true;
+        }
+        if (keys[SDL_SCANCODE_RIGHT])
+        {
+            player.x += player.speed;
+            strncpy(lastAction, "Idzie w prawo", 64);
+            moved = true;
+        }
+
+        if (keys[SDL_SCANCODE_UP])
+        {
+            player.y -= player.speed * 0.6f;
+            strncpy(lastAction, "Idzie w gore", 64);
+            moved = true;
+        }
+        if (keys[SDL_SCANCODE_DOWN])
+        {
+            player.y += player.speed * 0.6f;
+            strncpy(lastAction, "Idzie w dol", 64);
+            moved = true;
+        }
+
+        // --- PRZYCIĄGANIE Z MARGINESEM ---
+        const int ROAD_MARGIN = 20;
+
+        if (player.y + player.h < (float)(FLOOR_TOP + ROAD_MARGIN))
+        {
+            player.y = (float)(FLOOR_TOP + ROAD_MARGIN) - player.h;
+        }
+
+        if (player.y + player.h > (float)WORLD_HEIGHT)
+        {
+            player.y = (float)WORLD_HEIGHT - player.h;
+        }
+
+        if (!moved && strcmp(lastAction, "Nowa Gra Rozpoczeta") != 0)
+        {
+            strncpy(lastAction, "Oczekiwanie", 64);
+        }
+
+        if (player.x < 0)
+            player.x = 0;
+        if (player.x > WORLD_WIDTH - player.w)
+            player.x = WORLD_WIDTH - player.w;
+
+        camera.x = (int)(player.x + player.w / 2) - VIEWPORT_SIZE / 2;
+        if (camera.x < 0)
+            camera.x = 0;
+        if (camera.x > WORLD_WIDTH - VIEWPORT_SIZE)
+            camera.x = WORLD_WIDTH - VIEWPORT_SIZE;
+    }
+
+    void drawText(const char *text, int x, int y)
+    {
+        if (!font || !text)
+            return;
+        SDL_Color white = {255, 255, 255, 255};
+        SDL_Surface *surf = TTF_RenderText_Solid(font, text, white);
+        if (!surf)
+            return;
+        SDL_Texture *tex = SDL_CreateTextureFromSurface(renderer, surf);
+        SDL_Rect dst = {x, y, surf->w, surf->h};
+        SDL_RenderCopy(renderer, tex, NULL, &dst);
+        SDL_FreeSurface(surf);
+        SDL_DestroyTexture(tex);
     }
 
     void render()
     {
-        // 1. Tło panelu (szare)
-        SDL_SetRenderDrawColor(renderer, 60, 60, 60, 255);
+        SDL_SetRenderDrawColor(renderer, 30, 30, 30, 255);
         SDL_RenderClear(renderer);
 
-        // 2. Pole gry (czarne)
-        SDL_Rect gameRect = {0, 0, GAME_AREA_SIZE, GAME_AREA_SIZE};
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-        SDL_RenderFillRect(renderer, &gameRect);
+        SDL_Rect viewport = {0, 0, VIEWPORT_SIZE, VIEWPORT_SIZE};
+        SDL_RenderSetViewport(renderer, &viewport);
 
-        // 3. Wyświetlanie informacji w prawym panelu
-        char buffer[128]; // Bufor na sformatowany tekst
-        int panelX = GAME_AREA_SIZE + 10;
+        // --- ŚWIAT GRY ---
+        SDL_SetRenderDrawColor(renderer, 20, 20, 50, 255);
+        SDL_Rect sky = {0, 0, VIEWPORT_SIZE, FLOOR_TOP};
+        SDL_RenderFillRect(renderer, &sky);
 
-        // Czas gry
-        Uint32 seconds = (SDL_GetTicks() - startTime) / 1000;
-        sprintf(buffer, "Czas: %u s", seconds); // Formatowanie int do char[]
-        drawText(buffer, panelX, 20);
+        SDL_SetRenderDrawColor(renderer, 70, 70, 75, 255);
+        SDL_Rect ground = {-camera.x, FLOOR_TOP, WORLD_WIDTH, WORLD_HEIGHT - FLOOR_TOP};
+        SDL_RenderFillRect(renderer, &ground);
 
-        // Ostatnia akcja
-        drawText("Ostatnia akcja:", panelX, 60);
-        drawText(lastAction, panelX, 85);
+        SDL_SetRenderDrawColor(renderer, 120, 120, 0, 255);
+        for (int i = 0; i < WORLD_WIDTH; i += 300)
+        {
+            SDL_Rect line = {i - camera.x, FLOOR_TOP + 100, 80, 10};
+            SDL_RenderFillRect(renderer, &line);
+        }
+
+        SDL_SetRenderDrawColor(renderer, 200, 50, 50, 255);
+        SDL_Rect playerRect = {(int)player.x - camera.x, (int)player.y, player.w, player.h};
+        SDL_RenderFillRect(renderer, &playerRect);
+
+        // --- PANEL BOCZNY ---
+        SDL_RenderSetViewport(renderer, NULL);
+
+        int px = VIEWPORT_SIZE + 20;
+        char buf[128];
+
+        drawText("--- INFORMACJE ---", px, 20);
+
+        Uint32 sec = (SDL_GetTicks() - startTime) / 1000;
+        sprintf(buf, "Czas etapu: %u sek", sec);
+        drawText(buf, px, 70);
+
+        drawText("Ostatnia akcja:", px, 130);
+        drawText(lastAction, px, 160);
+
+        // Wyświetlanie pozycji X
+        sprintf(buf, "Pozycja X: %.0f", player.x);
+        drawText(buf, px, 220);
+
+        // Wyświetlanie pozycji Y (pod X)
+        sprintf(buf, "Pozycja Y: %.0f", player.y);
+        drawText(buf, px, 250);
+
+        drawText("STEROWANIE:", px, 450);
+        drawText("- Strzalki: Ruch", px, 480);
+        drawText("- N: Nowa Gra", px, 510);
+        drawText("- Esc: Wyjscie", px, 540);
 
         SDL_RenderPresent(renderer);
     }
@@ -148,14 +243,12 @@ int main(int argc, char *argv[])
     Game game;
     if (!game.init())
         return 1;
-
     while (game.running())
     {
         game.handleEvents();
         game.render();
         SDL_Delay(16);
     }
-
     game.cleanup();
     return 0;
 }
