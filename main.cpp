@@ -95,26 +95,28 @@ public:
         const Uint8 *keys = SDL_GetKeyboardState(NULL);
         bool moved = false;
 
-        if (keys[SDL_SCANCODE_LEFT])
+        // --- RUCH POZIOMY (Strzałki + AD) ---
+        if (keys[SDL_SCANCODE_LEFT] || keys[SDL_SCANCODE_A])
         {
             player.x -= player.speed;
             strncpy(lastAction, "Idzie w lewo", 64);
             moved = true;
         }
-        if (keys[SDL_SCANCODE_RIGHT])
+        if (keys[SDL_SCANCODE_RIGHT] || keys[SDL_SCANCODE_D])
         {
             player.x += player.speed;
             strncpy(lastAction, "Idzie w prawo", 64);
             moved = true;
         }
 
-        if (keys[SDL_SCANCODE_UP])
+        // --- RUCH PIONOWY (Strzałki + WS) ---
+        if (keys[SDL_SCANCODE_UP] || keys[SDL_SCANCODE_W])
         {
             player.y -= player.speed * 0.6f;
             strncpy(lastAction, "Idzie w gore", 64);
             moved = true;
         }
-        if (keys[SDL_SCANCODE_DOWN])
+        if (keys[SDL_SCANCODE_DOWN] || keys[SDL_SCANCODE_S])
         {
             player.y += player.speed * 0.6f;
             strncpy(lastAction, "Idzie w dol", 64);
@@ -209,16 +211,14 @@ public:
         drawText("Ostatnia akcja:", px, 130);
         drawText(lastAction, px, 160);
 
-        // Wyświetlanie pozycji X
         sprintf(buf, "Pozycja X: %.0f", player.x);
         drawText(buf, px, 220);
 
-        // Wyświetlanie pozycji Y (pod X)
         sprintf(buf, "Pozycja Y: %.0f", player.y);
         drawText(buf, px, 250);
 
         drawText("STEROWANIE:", px, 450);
-        drawText("- Strzalki: Ruch", px, 480);
+        drawText("- Strzalki / WSAD", px, 480);
         drawText("- N: Nowa Gra", px, 510);
         drawText("- Esc: Wyjscie", px, 540);
 
