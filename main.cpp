@@ -25,19 +25,20 @@ private:
     SDL_Window *window;
     SDL_Renderer *renderer;
     TTF_Font *font;
+    TTF_Font *fontSmall; // Dodatkowa mniejsza czcionka do listy wymagan
     bool isRunning;
 
     Player player;
     SDL_Rect camera;
-    Uint32 startTime;
+    Uint32 totalStartTime; // Czas od uruchomienia programu
+    Uint32 stageStartTime; // Czas od rozpoczecia etapu (resetowany 'n')
     char lastAction[64];
 
 public:
-    Game() : window(NULL), renderer(NULL), font(NULL), isRunning(true)
+    Game() : window(NULL), renderer(NULL), font(NULL), fontSmall(NULL), isRunning(true)
     {
         player.w = 50;
         player.h = 90;
-        resetGame();
     }
 
     bool init()
@@ -58,6 +59,10 @@ public:
             return false;
 
         font = TTF_OpenFont("arial.ttf", 18);
+        fontSmall = TTF_OpenFont("arial.ttf", 14); // Mniejsza czcionka do listy
+
+        totalStartTime = SDL_GetTicks(); // Ten czas mierzymy tylko raz
+        resetGame();
         return true;
     }
 
@@ -72,7 +77,7 @@ public:
         camera.w = VIEWPORT_SIZE;
         camera.h = VIEWPORT_SIZE;
 
-        startTime = SDL_GetTicks();
+        stageStartTime = SDL_GetTicks(); // Resetujemy czas etapu
         strncpy(lastAction, "Nowa Gra Rozpoczeta", 64);
     }
 
@@ -95,7 +100,6 @@ public:
         const Uint8 *keys = SDL_GetKeyboardState(NULL);
         bool moved = false;
 
-        // --- RUCH POZIOMY (Strzałki + AD) ---
         if (keys[SDL_SCANCODE_LEFT] || keys[SDL_SCANCODE_A])
         {
             player.x -= player.speed;
@@ -108,8 +112,6 @@ public:
             strncpy(lastAction, "Idzie w prawo", 64);
             moved = true;
         }
-
-        // --- RUCH PIONOWY (Strzałki + WS) ---
         if (keys[SDL_SCANCODE_UP] || keys[SDL_SCANCODE_W])
         {
             player.y -= player.speed * 0.6f;
@@ -123,23 +125,14 @@ public:
             moved = true;
         }
 
-        // --- PRZYCIĄGANIE Z MARGINESEM ---
         const int ROAD_MARGIN = 20;
-
         if (player.y + player.h < (float)(FLOOR_TOP + ROAD_MARGIN))
-        {
             player.y = (float)(FLOOR_TOP + ROAD_MARGIN) - player.h;
-        }
-
         if (player.y + player.h > (float)WORLD_HEIGHT)
-        {
             player.y = (float)WORLD_HEIGHT - player.h;
-        }
 
         if (!moved && strcmp(lastAction, "Nowa Gra Rozpoczeta") != 0)
-        {
             strncpy(lastAction, "Oczekiwanie", 64);
-        }
 
         if (player.x < 0)
             player.x = 0;
@@ -153,12 +146,14 @@ public:
             camera.x = WORLD_WIDTH - VIEWPORT_SIZE;
     }
 
-    void drawText(const char *text, int x, int y)
+    // Dodalem parametr fontu do drawText
+    void drawText(const char *text, int x, int y, TTF_Font *f = NULL)
     {
-        if (!font || !text)
+        TTF_Font *usedFont = (f == NULL) ? font : f;
+        if (!usedFont || !text)
             return;
         SDL_Color white = {255, 255, 255, 255};
-        SDL_Surface *surf = TTF_RenderText_Solid(font, text, white);
+        SDL_Surface *surf = TTF_RenderText_Solid(usedFont, text, white);
         if (!surf)
             return;
         SDL_Texture *tex = SDL_CreateTextureFromSurface(renderer, surf);
@@ -198,29 +193,34 @@ public:
 
         // --- PANEL BOCZNY ---
         SDL_RenderSetViewport(renderer, NULL);
-
-        int px = VIEWPORT_SIZE + 20;
+        int px = VIEWPORT_SIZE + 15;
         char buf[128];
 
-        drawText("--- INFORMACJE ---", px, 20);
+        drawText("--- CZAS ---", px, 15);
+        sprintf(buf, "Od startu: %u s", (SDL_GetTicks() - totalStartTime) / 1000);
+        drawText(buf, px, 40);
+        sprintf(buf, "Etap: %u s", (SDL_GetTicks() - stageStartTime) / 1000);
+        drawText(buf, px, 65);
 
-        Uint32 sec = (SDL_GetTicks() - startTime) / 1000;
-        sprintf(buf, "Czas etapu: %u sek", sec);
-        drawText(buf, px, 70);
+        drawText("--- STATUS ---", px, 105);
+        drawText(lastAction, px, 130);
+        sprintf(buf, "X: %.0f | Y: %.0f", player.x, player.y);
+        drawText(buf, px, 155);
 
-        drawText("Ostatnia akcja:", px, 130);
-        drawText(lastAction, px, 160);
+        // --- LISTA WYMAGAN ---
+        drawText("--- WYMAGANIA ---", px, 200);
+        drawText("- Podzial okna (viewport)", px, 225, fontSmall);
+        drawText("- Kamera (scrolling)", px, 245, fontSmall);
+        drawText("- Brak STL (string/vector)", px, 265, fontSmall);
+        drawText("- Ruch WSAD + Strzalki", px, 285, fontSmall);
+        drawText("- Czas rzeczywisty", px, 305, fontSmall);
+        drawText("- Obsluga Esc i 'n'", px, 325, fontSmall);
+        drawText("- Brak ograniczenia blokami", px, 345, fontSmall);
 
-        sprintf(buf, "Pozycja X: %.0f", player.x);
-        drawText(buf, px, 220);
-
-        sprintf(buf, "Pozycja Y: %.0f", player.y);
-        drawText(buf, px, 250);
-
-        drawText("STEROWANIE:", px, 450);
-        drawText("- Strzalki / WSAD", px, 480);
-        drawText("- N: Nowa Gra", px, 510);
-        drawText("- Esc: Wyjscie", px, 540);
+        drawText("--- STEROWANIE ---", px, 480);
+        drawText("WSAD / Strzalki - Ruch", px, 505, fontSmall);
+        drawText("N - Nowa Gra", px, 525, fontSmall);
+        drawText("Esc - Wyjscie", px, 545, fontSmall);
 
         SDL_RenderPresent(renderer);
     }
@@ -229,6 +229,8 @@ public:
     {
         if (font)
             TTF_CloseFont(font);
+        if (fontSmall)
+            TTF_CloseFont(fontSmall);
         TTF_Quit();
         SDL_DestroyRenderer(renderer);
         SDL_DestroyWindow(window);
