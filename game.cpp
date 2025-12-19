@@ -16,7 +16,7 @@ bool Game::init()
     if (TTF_Init() == -1)
         return false;
 
-    window = SDL_CreateWindow("Beat 'em Up - Projekt Podstawy Programowania",
+    window = SDL_CreateWindow("Hubert Strękowski 208381",
                               SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                               SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
     if (!window)
@@ -217,14 +217,13 @@ void Game::drawSidebar()
     // Sekcja WYMAGANIA
     drawCenteredText("--- WYMAGANIA ---", PY_REQ_HDR);
     const char *reqs[] = {
-        "Podzial okna",
-        "Kamera (scroll)",
-        "Brak STL",
-        "Ruch WSAD/Strzalki",
-        "Czas rzecz.",
+        "Zarys sceny",
+        "Miejsce do informacji",
         "Obsluga Esc/n",
-        "Brak blokow"};
-    for (int i = 0; i < 7; i++)
+        "Rozmiar sceny, kamera",
+        "WSAD i stralki",
+        "Mierzenie czasu"};
+    for (int i = 0; i < 6; i++)
     {
         drawCenteredText(reqs[i], PY_REQ_START + (i * PY_REQ_STEP), fontSmall);
     }

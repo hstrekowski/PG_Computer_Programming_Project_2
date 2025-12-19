@@ -24,7 +24,6 @@ private:
     void updateCamera();
     void drawWorld();
     void drawSidebar();
-    // Nowa metoda do centrowania:
     void drawCenteredText(const char *text, int y, TTF_Font *f = NULL);
 
 public:
