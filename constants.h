@@ -1,0 +1,42 @@
+#ifndef CONSTANTS_H
+#define CONSTANTS_H
+
+#define SCREEN_WIDTH 800
+#define SCREEN_HEIGHT 600
+#define VIEWPORT_SIZE 600
+#define SIDEBAR_WIDTH (SCREEN_WIDTH - VIEWPORT_SIZE) // Wynik: 200 pikseli
+
+#define WORLD_WIDTH 2400
+#define WORLD_HEIGHT 600
+#define FLOOR_TOP 350
+#define ROAD_MARGIN 20
+
+#define PLAYER_START_X 100
+#define PLAYER_START_Y_OFFSET 50
+#define PLAYER_WIDTH 50
+#define PLAYER_HEIGHT 90
+#define PLAYER_BASE_SPEED 4.0f
+#define PLAYER_Y_SPEED_MULT 0.6f
+
+#define COLOR_PANEL_BG 30, 30, 30
+#define COLOR_SKY 20, 20, 50
+#define COLOR_GROUND 70, 70, 75
+#define COLOR_ROAD_LINES 120, 120, 0
+#define COLOR_PLAYER 200, 50, 50
+
+#define PY_TIME_HDR 15
+#define PY_TIME_TOTAL 40
+#define PY_TIME_STAGE 65
+#define PY_STATUS_HDR 105
+#define PY_STATUS_ACT 130
+#define PY_STATUS_POS 155
+#define PY_REQ_HDR 200
+#define PY_REQ_START 225
+#define PY_REQ_STEP 20
+#define PY_CTRL_HDR 460 // Przesunięte nieco wyżej, by zmieścić więcej info
+#define PY_CTRL_START 485
+
+#define FONT_SIZE_NORMAL 18
+#define FONT_SIZE_SMALL 14
+
+#endif
