@@ -33,7 +33,7 @@
 #define PY_REQ_HDR 200
 #define PY_REQ_START 225
 #define PY_REQ_STEP 20
-#define PY_CTRL_HDR 460 // Przesunięte nieco wyżej, by zmieścić więcej info
+#define PY_CTRL_HDR 460
 #define PY_CTRL_START 485
 
 #define FONT_SIZE_NORMAL 18
