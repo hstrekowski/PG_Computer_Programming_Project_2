@@ -70,5 +70,5 @@ You need a GCC compiler (MinGW for Windows) and the development libraries for SD
 Use the following command in your terminal to compile all modules together:
 
 ```bash
-g++ main.cpp game.cpp -o street_justice -lSDL2 -lSDL2_ttf
+g++ main.cpp game.cpp -o game.exe -lSDL2 -lSDL2_ttf
 ```

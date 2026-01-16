@@ -9,7 +9,7 @@ Game::Game() : window(NULL), renderer(NULL), font(NULL), fontSmall(NULL), isRunn
     player.h = PLAYER_HEIGHT;
 }
 
-// Funckja odpowiedzialna za podstawowe ustawienia gry
+// Inicjalizacja podstawowych danych
 bool Game::init()
 {
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
