@@ -9,6 +9,7 @@ Game::Game() : window(NULL), renderer(NULL), font(NULL), fontSmall(NULL), isRunn
     player.h = PLAYER_HEIGHT;
 }
 
+// Funckja odpowiedzialna za podstawowe ustawienia gry
 bool Game::init()
 {
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
@@ -16,6 +17,7 @@ bool Game::init()
     if (TTF_Init() == -1)
         return false;
 
+    // Tworzenie okna
     window = SDL_CreateWindow("Hubert Strękowski 208381",
                               SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                               SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
@@ -26,6 +28,7 @@ bool Game::init()
     if (!renderer)
         return false;
 
+    // Wczytanie fonta
     font = TTF_OpenFont("arial.ttf", FONT_SIZE_NORMAL);
     fontSmall = TTF_OpenFont("arial.ttf", FONT_SIZE_SMALL);
 
@@ -34,45 +37,57 @@ bool Game::init()
         printf("Blad: Nie mozna wczytac czcionki arial.ttf!\n");
     }
 
+    // Start mierzenia czasu i reset gry
     totalStartTime = SDL_GetTicks();
     resetGame();
     return true;
 }
 
+// Resetowanie pozycji gracza, kamery, i czasu etapu
 void Game::resetGame()
 {
+    // Reset gracza
     player.x = PLAYER_START_X;
     player.y = FLOOR_TOP + PLAYER_START_Y_OFFSET;
     player.speed = PLAYER_BASE_SPEED;
 
+    // Reset kamery
     camera.x = 0;
     camera.y = 0;
     camera.w = VIEWPORT_SIZE;
     camera.h = VIEWPORT_SIZE;
 
+    // Reset czsasu etapu
     stageStartTime = SDL_GetTicks();
     strncpy(lastAction, "Nowa Gra Rozpoczeta", 64);
 }
 
+// Handler eventów od użytkownika
 void Game::handleEvents()
 {
     SDL_Event event;
     while (SDL_PollEvent(&event))
     {
+        // Koniec gry
         if (event.type == SDL_QUIT)
             isRunning = false;
         if (event.type == SDL_KEYDOWN)
         {
+            // Koniec gry na 'Esc'
             if (event.key.keysym.sym == SDLK_ESCAPE)
                 isRunning = false;
+            // Reset ma 'n'
             if (event.key.keysym.sym == SDLK_n)
                 resetGame();
         }
     }
+
+    // Update gracza i kamery
     updatePlayer();
     updateCamera();
 }
 
+// Poruszanie sie gracza
 void Game::updatePlayer()
 {
     const Uint8 *keys = SDL_GetKeyboardState(NULL);
@@ -106,7 +121,7 @@ void Game::updatePlayer()
         moved = true;
     }
 
-    // Ograniczenie pozycji (Clamping do krawedzi drogi z marginesem)
+    // Granice pionowe świata
     if (player.y + player.h < (float)(FLOOR_TOP + ROAD_MARGIN))
         player.y = (float)(FLOOR_TOP + ROAD_MARGIN) - player.h;
     if (player.y + player.h > (float)WORLD_HEIGHT)
@@ -122,6 +137,7 @@ void Game::updatePlayer()
         strncpy(lastAction, "Oczekiwanie", 64);
 }
 
+// Aktualizacja kamery względem pozycji gracza
 void Game::updateCamera()
 {
     camera.x = (int)(player.x + player.w / 2) - VIEWPORT_SIZE / 2;
@@ -131,8 +147,10 @@ void Game::updateCamera()
         camera.x = WORLD_WIDTH - VIEWPORT_SIZE;
 }
 
+// Funkcja pomocnicza do wyświetlania wycentrowanego tesktu
 void Game::drawCenteredText(const char *text, int y, TTF_Font *f)
 {
+    // Ustawienia rysowania
     TTF_Font *usedFont = (f == NULL) ? font : f;
     if (!usedFont || !text || text[0] == '\0')
         return;
@@ -144,7 +162,7 @@ void Game::drawCenteredText(const char *text, int y, TTF_Font *f)
 
     SDL_Texture *tex = SDL_CreateTextureFromSurface(renderer, surf);
 
-    // Obliczanie wycentrowanej pozycji X w panelu bocznym
+    // Obliczanie wycentrowanej pozycji x w panelu bocznym
     int x = VIEWPORT_SIZE + (SIDEBAR_WIDTH / 2) - (surf->w / 2);
 
     SDL_Rect dst = {x, y, surf->w, surf->h};
@@ -154,6 +172,7 @@ void Game::drawCenteredText(const char *text, int y, TTF_Font *f)
     SDL_DestroyTexture(tex);
 }
 
+// Głowna funkcja do renderowania obrazu
 void Game::render()
 {
     // Czyszczenie ekranu (kolor tła panelu bocznego)
@@ -166,12 +185,13 @@ void Game::render()
     SDL_RenderPresent(renderer);
 }
 
+// Funkcja do rysowania sceny
 void Game::drawWorld()
 {
     SDL_Rect viewport = {0, 0, VIEWPORT_SIZE, VIEWPORT_SIZE};
     SDL_RenderSetViewport(renderer, &viewport);
 
-    // Rysowanie tła (Niebo)
+    // Rysowanie tła
     SDL_SetRenderDrawColor(renderer, COLOR_SKY, 255);
     SDL_Rect sky = {0, 0, VIEWPORT_SIZE, FLOOR_TOP};
     SDL_RenderFillRect(renderer, &sky);
@@ -195,6 +215,7 @@ void Game::drawWorld()
     SDL_RenderFillRect(renderer, &playerRect);
 }
 
+// Funkcja do rysowania paska bocznego
 void Game::drawSidebar()
 {
     // Reset viewportu do calego okna
@@ -235,6 +256,7 @@ void Game::drawSidebar()
     drawCenteredText("Esc: Wyjscie", PY_CTRL_START + 40, fontSmall);
 }
 
+// Czyszczenie danych
 void Game::cleanup()
 {
     if (font)
