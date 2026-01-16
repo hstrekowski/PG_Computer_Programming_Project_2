@@ -10,14 +10,19 @@ class Game
 private:
     SDL_Window *window;
     SDL_Renderer *renderer;
+
     TTF_Font *font;
     TTF_Font *fontSmall;
+
     bool isRunning;
 
     Player player;
+
     SDL_Rect camera;
+
     Uint32 totalStartTime;
     Uint32 stageStartTime;
+
     char lastAction[64];
 
     void updatePlayer();
