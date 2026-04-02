@@ -1,16 +1,9 @@
-# 👊 Street Justice: SDL2 Beat 'em Up
 
-> **A high-performance, retro-style 2.5D arcade engine built with C++ and SDL2, following strict low-level programming constraints.**
->
-> Developed with **C++** and **SDL2/SDL_ttf**. Featuring a modular architecture, dynamic camera system, and a custom implementation that avoids the C++ Standard Template Library (STL).
 
----
+## About The Project
 
-## 📖 About The Project
+A beat 'em up arcade game engine developed as a core programming project. It focuses on simulating urban combat in a 2.5D perspective, where the player moves along a deep street environment that extends far beyond the window's boundaries.
 
-**Street Justice** is a beat 'em up arcade game engine developed as a core programming project. It focuses on simulating urban combat in a 2.5D perspective, where the player moves along a deep street environment that extends far beyond the window's boundaries.
-
-The codebase is engineered with **Clean Code principles**. All "magic numbers" have been eliminated and moved to a centralized configuration file. The program manages memory and strings using low-level C-style techniques, providing total control over performance and resource allocation.
 
 ### Technical Constraints & Highlights:
 
@@ -21,16 +14,16 @@ The codebase is engineered with **Clean Code principles**. All "magic numbers" h
 
 ---
 
-## 🚀 Features & Mechanics
+## Features & Mechanics
 
-### 🛣️ 2.5D Perspective & Clamping
+###  2.5D Perspective & Clamping
 
 The road is not just a flat line. The player moves within an area defined by the horizon (`FLOOR_TOP`) and safety margins:
 
 - **Foot-based Collision:** Movement boundaries are calculated based on the character's feet, creating a realistic sense of depth.
 - **Road Margin:** The character stops at a precise distance from the background edge, preventing visual clipping with the sky.
 
-### 📼 Real-time Information Sidebar
+### Real-time Information Sidebar
 
 All game data is rendered in a dedicated UI panel with an automatic layout:
 
@@ -38,7 +31,7 @@ All game data is rendered in a dedicated UI panel with an automatic layout:
 - **Auto-Centering Engine:** Sidebar text is dynamically centered based on the pixel width of the generated texture for a professional look.
 - **Requirements Tracker:** A live list of implemented technical requirements is displayed directly in the UI for grading transparency.
 
-### 🎮 Hybrid Control System
+###  Hybrid Control System
 
 The engine supports two input standards simultaneously:
 
@@ -47,7 +40,7 @@ The engine supports two input standards simultaneously:
 
 ---
 
-## 📂 Codebase Architecture
+##  Codebase Architecture
 
 The project structure is modular, separating logic from configuration and data:
 
@@ -59,7 +52,7 @@ The project structure is modular, separating logic from configuration and data:
 
 ---
 
-## 🛠️ Build & Installation
+## Build & Installation
 
 ### Prerequisites
 
